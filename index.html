@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>fps test</title>
+    <style>
+      .BoxWrap{
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+      }
+      .Box{
+        width: 20%;
+        text-align: center;
+      }
+      .checkBoxLabel{
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>FPS Test</h1>
+    <div>
+      <div>
+        <label for="setFps">FPS</label>
+        <input id="setFps" name="setFps" type="number" value="60">
+      </div>
+      <div>
+        <label for="setBox">Box</label>
+        <input id="setBox" name="setBox" type="number" value="60">
+      </div>
+      <button id="start">start</button>
+      <button id="stop" style="display: none;">stop</button>
+      <input id="gradation" type="checkbox">
+      <label for="gradation" class="checkBoxLabel">Gradation</label>
+    </div>
+    <div id="boxWrap" class="BoxWrap">
+    </div>
+
+<script>
+
+let isStop = true
+let boxWidth = 0 // Boxの数はstart/stop押すまで保持したいのでlet
+
+const startButton = document.getElementById('start')
+const stopButton = document.getElementById('stop')
+const FpsInput = document.getElementById('setFps')
+const boxWidthInput = document.getElementById('setBox')
+const gradationInput = document.getElementById('gradation')
+
+const boxWrap = document.getElementById('boxWrap')
+
+const loopSettings = {
+  FPS: 60,
+  frameLength_ms(){
+    return 1000/this.FPS
+  }
+}
+
+const createBoxes = (boxNum) => {
+  for(let i=0; i<boxNum; i++){
+    const newNode = document.createElement('div')
+    newNode.textContent = i
+    newNode.className = 'Box'
+    boxWrap.appendChild(newNode)
+  }
+}
+
+const deleteBoxes = () => {
+  const boxWrap = document.getElementById('boxWrap')
+    while (boxWrap.firstChild) {
+      boxWrap.removeChild(boxWrap.firstChild);
+  }
+}
+
+// HTMLCollectionは'生きている'ので中身は可変
+const boxes = document.getElementsByClassName('Box')
+
+const switchBoxColor = (framePos) => {
+  const transition = gradationInput.checked ? 'background-color 1.0s cubic-bezier(0.65, 0, 0.35, 1)' : 'background-color 0.0s'
+  Array.from(boxes).forEach((box,i)=>{
+    if(framePos%boxWidth===i){
+      box.style.backgroundColor = 'black'
+      box.style.transition = 'background-color 0.0s'
+    }else{
+      box.style.backgroundColor = 'white'
+      box.style.transition = transition
+    }
+  })
+}
+
+const getTime = () => {
+  return window.performance.now()
+}
+
+const startTime = getTime()
+
+// Main Animation Loop
+const loop = () => {
+  if( isStop ) { return }
+  window.requestAnimationFrame( loop )
+  const now = getTime()
+  const startDistance = now - startTime
+  const nowFramePosition = Math.floor( startDistance / loopSettings.frameLength_ms() )
+  switchBoxColor(nowFramePosition)
+}
+
+startButton.addEventListener('click',(e)=>{
+  startButton.style.display = 'none'
+  stopButton.style.display = 'inline'
+  loopSettings.FPS = FpsInput.value
+  boxWidth = boxWidthInput.value
+  deleteBoxes()
+  createBoxes(boxWidth)
+  isStop = false
+  loop()
+})
+
+stopButton.addEventListener('click',(e)=>{
+  stopButton.style.display = 'none'
+  startButton.style.display = 'inline'
+  isStop = true
+})
+
+</script>
+
+  </body>
+</html>
